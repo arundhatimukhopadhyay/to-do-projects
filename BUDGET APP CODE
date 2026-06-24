@@ -1,0 +1,79 @@
+class Category:
+    def __init__(self, name):
+        self.name = name
+        self.ledger = []
+
+    def deposit(self, amount, description=""):
+        self.ledger.append({"amount": amount, "description": description})
+
+    def withdraw(self, amount, description=""):
+        if self.check_funds(amount):
+            self.ledger.append({"amount": -amount, "description": description})
+            return True
+        return False
+
+    def get_balance(self):
+        return sum(item["amount"] for item in self.ledger)
+
+    def check_funds(self, amount):
+        return self.get_balance() >= amount
+
+    def transfer(self, amount, category):
+        if self.check_funds(amount):
+            self.withdraw(amount, f"Transfer to {category.name}")
+            category.deposit(amount, f"Transfer from {self.name}")
+            return True
+        return False
+
+    def __str__(self):
+        title = f"{self.name:*^30}\n"
+        items = ""
+        total = 0
+        for item in self.ledger:
+            desc = item["description"][:23]
+            amt = f"{item['amount']:.2f}"
+            items += f"{desc:<23}{amt:>7}\n"
+            total += item["amount"]
+        return f"{title}{items}Total: {total:.2f}"
+
+def create_spend_chart(categories):
+    # Calculate total spent for all categories
+    spent_amounts = []
+    for category in categories:
+        spent = sum(-item["amount"] for item in category.ledger if item["amount"] < 0)
+        spent_amounts.append(spent)
+        
+    total_spent = sum(spent_amounts)
+    
+    # Calculate percentage for each category
+    percentages = [int((spent / total_spent * 100) // 10 * 10) for spent in spent_amounts]
+    
+    # Build the Chart Title
+    chart = "Percentage spent by category\n"
+    
+    # Build the Bar Chart
+    for i in range(100, -1, -10):
+        chart += f"{i:>3}|"
+        for percent in percentages:
+            if percent >= i:
+                chart += " o "
+            else:
+                chart += "   "
+        chart += " \n"
+        
+    # Build the Dashed Line
+    chart += "    " + "-" * (len(categories) * 3 + 1) + "\n"
+    
+    # Build the Category Names (Vertically)
+    max_len = max(len(cat.name) for cat in categories)
+    names = [cat.name.ljust(max_len) for cat in categories]
+    
+    for i in range(max_len):
+        chart += "    "
+        for name in names:
+            chart += f" {name[i]} "
+        chart += " "
+        if i < max_len - 1:
+            chart += "\n"
+            
+    return chart
