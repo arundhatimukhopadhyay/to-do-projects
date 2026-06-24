@@ -1,0 +1,56 @@
+def add_time(start, duration, starting_day=None):
+    # 1. Parse the initial time into hours, minutes, and period (AM/PM)
+    start_time, period = start.split()
+    start_hour, start_minute = map(int, start_time.split(':'))
+    
+    # 2. Parse the duration time into hours and minutes
+    duration_hour, duration_minute = map(int, duration.split(':'))
+    
+    # 3. Convert the initial hour to a 24-hour format baseline
+    if period == 'PM':
+        start_hour += 12
+    elif period == 'AM' and start_hour == 12:
+        start_hour = 0
+
+    # 4. Calculate total combined minutes and handle hour carryover
+    total_minutes = start_minute + duration_minute
+    extra_hours = total_minutes // 60
+    final_minute = total_minutes % 60
+    
+    # 5. Calculate total combined hours and track day progression
+    total_hours = start_hour + duration_hour + extra_hours
+    final_hour = total_hours % 24
+    days_later = total_hours // 24
+    
+    # 6. Convert back to 12-hour clock period format (AM/PM)
+    if final_hour == 0:
+        final_period = 'AM'
+        display_hour = 12
+    elif final_hour < 12:
+        final_period = 'AM'
+        display_hour = final_hour
+    elif final_hour == 12:
+        final_period = 'PM'
+        display_hour = 12
+    else:
+        final_period = 'PM'
+        display_hour = final_hour - 12
+
+    # 7. Construct the return time string segment
+    new_time = f"{display_hour}:{final_minute:02d} {final_period}"
+
+    # 8. Calculate day of the week if provided
+    if starting_day is not None:
+        days_of_week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        # Find the correct index regardless of original string capitalization
+        start_day_idx = days_of_week.index(starting_day.strip().capitalize())
+        final_day_idx = (start_day_idx + days_later) % 7
+        new_time += f", {days_of_week[final_day_idx]}"
+
+    # 9. Append day-lapse description tracker
+    if days_later == 1:
+        new_time += " (next day)"
+    elif days_later > 1:
+        new_time += f" ({days_later} days later)"
+
+    return new_time
